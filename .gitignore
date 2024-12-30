@@ -4,13 +4,11 @@
 # 忽略 node_modules 資料夾
 node_modules/
 
+# 忽略證書文件
+certs/
+
 # 忽略日誌文件
 *.log
 
-# 忽略打包輸出文件
-dist/
-build/
-
 # 忽略操作系統生成的文件
 .DS_Store
-Thumbs.db

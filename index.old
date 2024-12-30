@@ -321,14 +321,11 @@ app.get('/servers/:serverId/preview-config', authenticateToken, async (req, res)
     }
 
     // 構建預覽配置
-    const reactionRoles = Array.from(config.settings.reactionRoles.entries()).map(([key, roleData]) => {
+    const reactionRoles = config.settings.reactionRoles.map((roleData) => {
       const channelName = channelMap[roleData.channel] || 'N/A';
-      if (!roleData.channel) {
-        console.warn(`Missing channel ID for reaction role messageId: ${key}`);
-      }
       return {
         channel: channelName,
-        messageId: key || 'N/A',
+        messageId: roleData.messageId || 'N/A',
         emoji: emojiMap[roleData.emoji] || roleData.emoji || 'N/A',
         role: roleMap[roleData.role] || 'N/A',
       };
@@ -437,7 +434,7 @@ app.post('/servers/:serverId/config/log-settings', authenticateToken, async (req
   }
 });
 
-// 保存反應角色設置
+// 新增或更新反應角色設置
 app.post('/servers/:serverId/config/reaction-role', authenticateToken, async (req, res) => {
   const { serverId } = req.params;
   const { channel, messageId, emoji, role } = req.body;
@@ -447,17 +444,32 @@ app.post('/servers/:serverId/config/reaction-role', authenticateToken, async (re
     let config = await ServerConfig.findOne({ serverId });
     if (!config) {
       console.log(`Configuration not found for serverId: ${serverId}. Creating new configuration.`);
-      // 如果配置不存在，創建新配置並初始化 reactionRoles 為空對象
-      config = new ServerConfig({ serverId, settings: { reactionRoles: {} } });
+      // 如果配置不存在，創建新配置並初始化 reactionRoles 為空陣列
+      config = new ServerConfig({ serverId, settings: { reactionRoles: [] } });
     } else {
       console.log(`Found configuration for serverId: ${serverId}`);
     }
 
-    // 確保 reactionRoles 是普通對象
-    config.settings.reactionRoles = config.settings.reactionRoles || {};
+    // 確保 reactionRoles 是陣列
+    config.settings.reactionRoles = config.settings.reactionRoles || [];
 
-    // 使用 messageId 作為鍵，設置反應角色配置
-    config.settings.reactionRoles[messageId] = { channel, emoji, role };
+    // 新的 reactionRole 條目
+    const newReactionRole = { channel, messageId, emoji, role };
+
+    // 檢查是否已存在完全相同的配置，避免重複
+    const existingRole = config.settings.reactionRoles.find(
+      (item) =>
+        item.messageId === messageId &&
+        item.emoji === emoji &&
+        item.role === role
+    );
+
+    if (existingRole) {
+      return res.status(400).json({ success: false, message: 'Reaction Role already exists for this message, emoji, and role.' });
+    }
+
+    // 添加新的 reactionRole
+    config.settings.reactionRoles.push(newReactionRole);
 
     // 標記為已修改並保存
     config.markModified('settings.reactionRoles');
