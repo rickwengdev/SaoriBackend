@@ -3,9 +3,6 @@ const reactionRoleController = require('../controllers/reactionRoleController');
 const authenticateToken = require('../middlewares/authenticateToken');
 const router = express.Router();
 
-// 使用身份驗證中間件
-router.use(authenticateToken);
-
 /**
  * 獲取伺服器的反應角色設定
  * GET /api/reaction-role/:serverId/reaction-roles
@@ -19,24 +16,28 @@ router.get('/:serverId/roles', async (req, res, next) => {
 });
 
 /**
+ * 獲取伺服器的反應角色設定
+ * GET /api/reaction-role/:serverId/reaction-roles
+ */
+router.get('/:serverId/reaction-roles', async (req, res, next) => {
+  try {
+    await reactionRoleController.getReactionRoles(req, res);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// 使用身份驗證中間件
+router.use(authenticateToken);
+
+
+/**
  * 新增或更新伺服器的反應角色設定
  * POST /api/reaction-role/:serverId/reaction-roles
  */
 router.get('/:serverId/emojis', async (req, res, next) => {
   try {
     await reactionRoleController.getEmojis(req, res);
-  } catch (error) {
-    next(error);
-  }
-});
-
-/**
- * 刪除伺服器的反應角色設定
- * DELETE /api/reaction-role/:serverId/reaction-roles
- */
-router.get('/:serverId/reaction-roles', async (req, res, next) => {
-  try {
-    await reactionRoleController.getReactionRoles(req, res);
   } catch (error) {
     next(error);
   }
