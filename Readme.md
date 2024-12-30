@@ -161,7 +161,7 @@ module.exports = router;
 
 1. 應用程序無法啟動
     - 確保 `.env` 文件配置正確。
-    - 檢查 MongoDB 是否運行。
+    - 檢查 MariaDB 是否運行。
 2. Docker 問題
     - 如果 `docker-compose` 啟動失敗，檢查 Docker 服務是否正常。
 3. 依賴問題
