@@ -15,8 +15,7 @@ const Servers = {
      * 創建伺服器資料
      * @param {Object} data 伺服器資料
      */
-    async create(data) {
-        const { serverId, serverName } = data;
+    async create(serverId, serverName) {
         const sql = `
             INSERT INTO Servers (server_id, server_name)
             VALUES (?, ?)
