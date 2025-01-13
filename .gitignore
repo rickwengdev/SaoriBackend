@@ -9,6 +9,7 @@ certs/
 
 # 忽略日誌文件
 *.log
+logs/
 
 # 忽略操作系統生成的文件
 .DS_Store
