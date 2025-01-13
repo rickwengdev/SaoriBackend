@@ -1,5 +1,6 @@
 const mysql = require('mysql2/promise');
 const dotenv = require('dotenv');
+const Logger = require('../services/errorhandleService'); // 引入集中化 Logger
 
 // 加載環境變量
 dotenv.config();
@@ -23,12 +24,13 @@ const db = mysql.createPool({
 const testConnection = async () => {
   try {
     const [result] = await db.query('SELECT 1 + 1 AS test');
-    console.log('Database connected successfully. Test result:', result[0].test);
+    Logger.info('Database connected successfully.');
+    Logger.debug(`Test query result: ${result[0].test}`);
   } catch (error) {
-    console.error('Database connection failed:');
-    console.error(`Host: ${process.env.DB_HOST || 'localhost'}`);
-    console.error(`Database: ${process.env.DB_NAME || 'test'}`);
-    console.error(`Error: ${error.message}`);
+    Logger.error('Database connection failed.');
+    Logger.error(`Host: ${process.env.DB_HOST || 'localhost'}`);
+    Logger.error(`Database: ${process.env.DB_NAME || 'test'}`);
+    Logger.error(`Error: ${error.message}`);
     process.exit(1); // 退出應用以防止後續代碼執行
   }
 };

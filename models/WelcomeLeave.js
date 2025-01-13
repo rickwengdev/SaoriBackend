@@ -1,4 +1,5 @@
 const db = require('./db');
+const Logger = require('../services/errorhandleService'); // 引入集中化 Logger
 
 const WelcomeLeaveConfig = {
   /**
@@ -7,11 +8,23 @@ const WelcomeLeaveConfig = {
    * @returns {Object|null} 記錄或 null
    */
   async findByServerId(serverId) {
-    const [rows] = await db.query(
-      'SELECT * FROM WelcomeLeaveConfig WHERE server_id = ?',
-      [serverId]
-    );
-    return rows.length > 0 ? rows[0] : null;
+    try {
+      Logger.info(`[WelcomeLeaveConfig.findByServerId] Fetching configuration for serverId=${serverId}`);
+      const [rows] = await db.query(
+        'SELECT * FROM WelcomeLeaveConfig WHERE server_id = ?',
+        [serverId]
+      );
+      if (rows.length > 0) {
+        Logger.info(`[WelcomeLeaveConfig.findByServerId] Configuration found for serverId=${serverId}`);
+        return rows[0];
+      } else {
+        Logger.warn(`[WelcomeLeaveConfig.findByServerId] No configuration found for serverId=${serverId}`);
+        return null;
+      }
+    } catch (error) {
+      Logger.error(`[WelcomeLeaveConfig.findByServerId] Error fetching configuration for serverId=${serverId}: ${error.message}`);
+      throw new Error('Failed to fetch configuration');
+    }
   },
 
   /**
@@ -23,34 +36,40 @@ const WelcomeLeaveConfig = {
   async upsert(serverId, config) {
     const { welcomeChannelId, leaveChannelId } = config;
 
-    const existingConfig = await this.findByServerId(serverId);
+    try {
+      Logger.info(`[WelcomeLeaveConfig.upsert] Upserting configuration for serverId=${serverId}`);
+      const existingConfig = await this.findByServerId(serverId);
 
-    if (existingConfig) {
-      // 更新現有記錄
-      const updateFields = [];
-      const updateValues = [];
+      if (existingConfig) {
+        const updateFields = [];
+        const updateValues = [];
 
-      if (welcomeChannelId !== undefined) {
-        updateFields.push('welcome_channel_id = ?');
-        updateValues.push(welcomeChannelId);
-      }
-      if (leaveChannelId !== undefined) {
-        updateFields.push('leave_channel_id = ?');
-        updateValues.push(leaveChannelId);
-      }
+        if (welcomeChannelId !== undefined) {
+          updateFields.push('welcome_channel_id = ?');
+          updateValues.push(welcomeChannelId);
+        }
+        if (leaveChannelId !== undefined) {
+          updateFields.push('leave_channel_id = ?');
+          updateValues.push(leaveChannelId);
+        }
 
-      if (updateFields.length > 0) {
+        if (updateFields.length > 0) {
+          await db.query(
+            `UPDATE WelcomeLeaveConfig SET ${updateFields.join(', ')} WHERE server_id = ?`,
+            [...updateValues, serverId]
+          );
+          Logger.info(`[WelcomeLeaveConfig.upsert] Configuration updated for serverId=${serverId}`);
+        }
+      } else {
         await db.query(
-          `UPDATE WelcomeLeaveConfig SET ${updateFields.join(', ')} WHERE server_id = ?`,
-          [...updateValues, serverId]
+          'INSERT INTO WelcomeLeaveConfig (server_id, welcome_channel_id, leave_channel_id) VALUES (?, ?, ?)',
+          [serverId, welcomeChannelId || null, leaveChannelId || null]
         );
+        Logger.info(`[WelcomeLeaveConfig.upsert] Configuration inserted for serverId=${serverId}`);
       }
-    } else {
-      // 插入新記錄
-      await db.query(
-        'INSERT INTO WelcomeLeaveConfig (server_id, welcome_channel_id, leave_channel_id) VALUES (?, ?, ?)',
-        [serverId, welcomeChannelId || null, leaveChannelId || null]
-      );
+    } catch (error) {
+      Logger.error(`[WelcomeLeaveConfig.upsert] Error upserting configuration for serverId=${serverId}: ${error.message}`);
+      throw new Error('Failed to upsert configuration');
     }
   },
 
@@ -60,7 +79,14 @@ const WelcomeLeaveConfig = {
    * @returns {void}
    */
   async delete(serverId) {
-    await db.query('DELETE FROM WelcomeLeaveConfig WHERE server_id = ?', [serverId]);
+    try {
+      Logger.info(`[WelcomeLeaveConfig.delete] Deleting configuration for serverId=${serverId}`);
+      await db.query('DELETE FROM WelcomeLeaveConfig WHERE server_id = ?', [serverId]);
+      Logger.info(`[WelcomeLeaveConfig.delete] Configuration deleted for serverId=${serverId}`);
+    } catch (error) {
+      Logger.error(`[WelcomeLeaveConfig.delete] Error deleting configuration for serverId=${serverId}: ${error.message}`);
+      throw new Error('Failed to delete configuration');
+    }
   },
 };
 

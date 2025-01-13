@@ -7,7 +7,7 @@ const cookieParser = require('cookie-parser');
 const morgan = require('morgan');
 const db = require('./models/db');
 const DatabaseService = require('./services/checkAndCreateTable');
-
+const Logger = require('./services/errorhandleService');
 
 // 路由
 const authRoutes = require('./routes/authRoutes');
@@ -19,6 +19,7 @@ const logsRoutes = require('./routes/logsRoutes');
 const DynamicVoiceChannelRoutes = require('./routes/dynamicVoiceChannelRoutes');
 const reactionRoleRoutes = require('./routes/reactionRoleRoutes');
 const serverRoutes = require('./routes/serverRoutes');
+const { Logform } = require('winston');
 
 const app = express();
 
@@ -32,16 +33,28 @@ const sslOptions = {
 app.use(cors({ origin: `${process.env.API_URL}:8080`, credentials: true }));
 app.use(express.json());
 app.use(cookieParser());
-app.use(morgan('dev')); // 添加日誌中間件
+
+// 添加 morgan 中間件，使用自定義 Logger 實例
+app.use(
+  morgan('combined', {
+    stream: {
+      write: (message) => Logger.info(message.trim()),
+    },
+  })
+);
+
+// 使用日誌
+Logger.info('Application is starting...');
+Logger.error('This is an error message');
 
 // 測試 MariaDB 連接
 (async () => {
   try {
     const conn = await db.getConnection();
-    console.log('MariaDB connection successful');
+    Logger.info('MariaDB connection successful');
     conn.release();
   } catch (err) {
-    console.error('Failed to connect to MariaDB:', err);
+    Logger.error(`Failed to connect to MariaDB: ${err.message}`);
     process.exit(1); // 終止應用程式
   }
 })();
@@ -50,9 +63,9 @@ app.use(morgan('dev')); // 添加日誌中間件
 (async () => {
   try {
     await DatabaseService.checkAndCreateAllTables();
-    console.log('All tables checked and initialized');
+    Logger.info('All tables checked and initialized');
   } catch (err) {
-    console.error('Error initializing database tables:', err.message);
+    Logger.error(`Error initializing database tables: ${err.message}`);
     process.exit(1);
   }
 })();
@@ -70,12 +83,26 @@ app.use('/server', serverRoutes);
 
 // 全局錯誤處理
 app.use((err, req, res, next) => {
-  console.error('Global error handler:', err.stack || err.message || err);
-  res.status(err.status || 500).json({ message: err.message || 'Internal Server Error' });
+  Logger.error(`Global error handler: ${err.stack || err.message || err}`);
+  res
+    .status(err.status || 500)
+    .json({ message: err.message || 'Internal Server Error' });
+});
+
+// 捕獲未處理的異常
+process.on('uncaughtException', (err) => {
+  Logger.error(`Uncaught Exception: ${err.message}`);
+  process.exit(1);
+});
+
+// 捕獲未處理的拒絕
+process.on('unhandledRejection', (reason, promise) => {
+  Logger.error(`Unhandled Rejection at: ${promise}, reason: ${reason}`);
+  process.exit(1);
 });
 
 // Start HTTPS server
 const PORT = process.env.PORT || 3000;
 https.createServer(sslOptions, app).listen(PORT, () => {
-  console.log(`Server is running on https://localhost:${PORT}`);
+  Logger.info(`Server is running on ${process.env.API_URL}:${PORT}`);
 });

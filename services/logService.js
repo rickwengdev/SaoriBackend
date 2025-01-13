@@ -1,4 +1,5 @@
 const Logs = require('../models/Logs');
+const Logger = require('../services/errorhandleService'); // 引入集中化 Logger
 
 class LogService {
   /**
@@ -8,9 +9,16 @@ class LogService {
    */
   async getLogChannel(serverId) {
     try {
-      return await Logs.findByServerId(serverId);
+      Logger.info(`[LogService.getLogChannel] Fetching log channel for serverId=${serverId}`);
+      const logChannel = await Logs.findByServerId(serverId);
+      if (logChannel) {
+        Logger.info(`[LogService.getLogChannel] Log channel found for serverId=${serverId}`);
+      } else {
+        Logger.warn(`[LogService.getLogChannel] No log channel found for serverId=${serverId}`);
+      }
+      return logChannel;
     } catch (error) {
-      console.error(`Error fetching log channel for serverId ${serverId}:`, error.message);
+      Logger.error(`[LogService.getLogChannel] Error fetching log channel for serverId=${serverId}: ${error.message}`);
       throw new Error('Failed to fetch log channel.');
     }
   }
@@ -23,10 +31,12 @@ class LogService {
    */
   async setLogChannel(serverId, logChannelId) {
     try {
+      Logger.info(`[LogService.setLogChannel] Setting log channel for serverId=${serverId}, logChannelId=${logChannelId}`);
       await Logs.upsert(serverId, logChannelId);
+      Logger.info(`[LogService.setLogChannel] Log channel set successfully for serverId=${serverId}`);
       return { success: true };
     } catch (error) {
-      console.error(`Error setting log channel for serverId ${serverId}:`, error.message);
+      Logger.error(`[LogService.setLogChannel] Error setting log channel for serverId=${serverId}: ${error.message}`);
       throw new Error('Failed to set log channel.');
     }
   }
@@ -38,10 +48,12 @@ class LogService {
    */
   async deleteLogChannel(serverId) {
     try {
+      Logger.info(`[LogService.deleteLogChannel] Deleting log channel for serverId=${serverId}`);
       await Logs.deleteByServerId(serverId);
+      Logger.info(`[LogService.deleteLogChannel] Log channel deleted successfully for serverId=${serverId}`);
       return { success: true };
     } catch (error) {
-      console.error(`Error deleting log channel for serverId ${serverId}:`, error.message);
+      Logger.error(`[LogService.deleteLogChannel] Error deleting log channel for serverId=${serverId}: ${error.message}`);
       throw new Error('Failed to delete log channel.');
     }
   }

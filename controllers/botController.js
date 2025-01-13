@@ -1,4 +1,5 @@
 const botService = require('../services/botService');
+const Logger = require('../services/errorhandleService');
 
 class BotController {
   /**
@@ -7,11 +8,11 @@ class BotController {
   async getBotAvatar(req, res) {
     try {
       const avatarUrl = await botService.getBotAvatarUrl();
-      console.info('成功獲取 Bot 頭像:', avatarUrl);
+      Logger.info(`成功獲取 Bot 頭像: ${avatarUrl}`);
 
       res.json({ success: true, avatarUrl });
     } catch (error) {
-      console.error('獲取 Bot 頭像失敗:', error.message || error);
+      Logger.error(`獲取 Bot 頭像失敗: ${error.message || error}`);
 
       res.status(500).json({
         success: false,
@@ -30,14 +31,14 @@ class BotController {
       const isBotInServer = await botService.isBotInServer(serverId);
 
       if (isBotInServer) {
-        console.info(`Bot 存在於伺服器 ${serverId} 中`);
+        Logger.info(`Bot 存在於伺服器 ${serverId} 中`);
       } else {
-        console.info(`Bot 不存在於伺服器 ${serverId} 中`);
+        Logger.info(`Bot 不存在於伺服器 ${serverId} 中`);
       }
 
       res.json({ success: true, isBotInServer });
     } catch (error) {
-      console.error('檢查機器人是否在伺服器中失敗:', error.message || error);
+      Logger.error(`檢查機器人是否在伺服器中失敗: ${error.message || error}`);
 
       res.status(500).json({
         success: false,

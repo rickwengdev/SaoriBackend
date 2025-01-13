@@ -1,4 +1,5 @@
 const db = require('../models/db'); // 封裝的資料庫連接模組
+const Logger = require('../services/errorhandleService'); // 引入集中化 Logger
 
 class DatabaseService {
   constructor() {
@@ -72,6 +73,7 @@ class DatabaseService {
   // 檢查單個表是否存在
   async isTableExists(tableName) {
     try {
+      Logger.info(`[DatabaseService.isTableExists] Checking if table "${tableName}" exists`);
       const [rows] = await db.query(
         `
         SELECT COUNT(*) AS tableExists 
@@ -80,9 +82,11 @@ class DatabaseService {
         `,
         [tableName]
       );
-      return rows[0].tableExists > 0;
+      const exists = rows[0].tableExists > 0;
+      Logger.info(`[DatabaseService.isTableExists] Table "${tableName}" exists: ${exists}`);
+      return exists;
     } catch (error) {
-      console.error(`檢查表 "${tableName}" 是否存在時出錯:`, error.message);
+      Logger.error(`[DatabaseService.isTableExists] Error checking table "${tableName}": ${error.message}`);
       throw error;
     }
   }
@@ -90,9 +94,11 @@ class DatabaseService {
   // 創建單個表
   async createTable(schema) {
     try {
+      Logger.info(`[DatabaseService.createTable] Creating table with schema: ${schema}`);
       await db.query(schema);
+      Logger.info(`[DatabaseService.createTable] Table created successfully`);
     } catch (error) {
-      console.error('創建表時出錯:', error.message);
+      Logger.error(`[DatabaseService.createTable] Error creating table: ${error.message}`);
       throw error;
     }
   }
@@ -101,16 +107,17 @@ class DatabaseService {
   async checkAndCreateAllTables() {
     for (const table of this.tables) {
       try {
+        Logger.info(`[DatabaseService.checkAndCreateAllTables] Checking table "${table.name}"`);
         const exists = await this.isTableExists(table.name);
         if (!exists) {
-          console.log(`Table "${table.name}" 不存在，正在創建...`);
+          Logger.info(`[DatabaseService.checkAndCreateAllTables] Table "${table.name}" does not exist. Creating...`);
           await this.createTable(table.schema);
-          console.log(`Table "${table.name}" 已成功創建。`);
+          Logger.info(`[DatabaseService.checkAndCreateAllTables] Table "${table.name}" created successfully`);
         } else {
-          console.log(`Table "${table.name}" 已存在，無需創建。`);
+          Logger.info(`[DatabaseService.checkAndCreateAllTables] Table "${table.name}" already exists`);
         }
       } catch (error) {
-        console.error(`檢查或創建表 "${table.name}" 時出錯:`, error.message);
+        Logger.error(`[DatabaseService.checkAndCreateAllTables] Error processing table "${table.name}": ${error.message}`);
       }
     }
   }
