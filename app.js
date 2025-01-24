@@ -19,7 +19,7 @@ const logsRoutes = require('./routes/logsRoutes');
 const DynamicVoiceChannelRoutes = require('./routes/dynamicVoiceChannelRoutes');
 const reactionRoleRoutes = require('./routes/reactionRoleRoutes');
 const serverRoutes = require('./routes/serverRoutes');
-const { Logform } = require('winston');
+const trackingMembersRoutes = require('./routes/trackingMembersRoutes');
 
 const app = express();
 
@@ -80,6 +80,7 @@ app.use('/api', logsRoutes);
 app.use('/api', DynamicVoiceChannelRoutes);
 app.use('/api', reactionRoleRoutes);
 app.use('/server', serverRoutes);
+app.use('/api', trackingMembersRoutes);
 
 // 全局錯誤處理
 app.use((err, req, res, next) => {

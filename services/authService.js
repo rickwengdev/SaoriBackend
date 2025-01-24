@@ -34,12 +34,19 @@ class AuthService {
           code,
           redirect_uri: this.redirectUri,
         }),
-        { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
+        {
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          timeout: 5000, // 5 秒超時
+        }
       );
       Logger.info('[AuthService.getAccessToken] Access token fetched successfully');
       return response.data.access_token;
     } catch (error) {
-      Logger.error('[AuthService.getAccessToken] Error fetching access token:', error.response?.data || error.message);
+      // 記錄詳細錯誤信息
+      Logger.error('[AuthService.getAccessToken] Error fetching access token:', {
+        status: error.response?.status,
+        data: error.response?.data || error.message,
+      });
       throw new Error('無法獲取 Access Token');
     }
   }

@@ -27,15 +27,11 @@ router.get('/:serverId/reaction-roles', async (req, res, next) => {
   }
 });
 
-// 使用身份驗證中間件
-router.use(authenticateToken);
-
-
 /**
  * 新增或更新伺服器的反應角色設定
  * POST /api/reaction-role/:serverId/reaction-roles
  */
-router.get('/:serverId/emojis', async (req, res, next) => {
+router.get('/:serverId/emojis', authenticateToken, async (req, res, next) => {
   try {
     await reactionRoleController.getEmojis(req, res);
   } catch (error) {
@@ -47,7 +43,7 @@ router.get('/:serverId/emojis', async (req, res, next) => {
  * 更新伺服器的反應角色設定
  * PUT /api/reaction-role/:serverId/reaction-roles
  */
-router.post('/:serverId/reaction-roles', async (req, res, next) => {
+router.post('/:serverId/reaction-roles', authenticateToken, async (req, res, next) => {
   try {
     await reactionRoleController.addReactionRole(req, res);
   } catch (error) {
@@ -59,7 +55,7 @@ router.post('/:serverId/reaction-roles', async (req, res, next) => {
  * 刪除伺服器的反應角色設定
  * DELETE /api/reaction-role/:serverId/reaction-roles
  */
-router.delete('/:serverId/reaction-roles', async (req, res, next) => {
+router.delete('/:serverId/reaction-roles', authenticateToken, async (req, res, next) => {
   try {
     await reactionRoleController.deleteReactionRole(req, res);
   } catch (error) {
@@ -71,7 +67,7 @@ router.delete('/:serverId/reaction-roles', async (req, res, next) => {
  * 更新伺服器的反應角色設定
  * PUT /api/reaction-role/:serverId/reaction-roles
  */
-router.put('/:serverId/reaction-roles', async (req, res, next) => {
+router.put('/:serverId/reaction-roles', authenticateToken, async (req, res, next) => {
   try {
     await reactionRoleController.updateReactionRole(req, res);
   } catch (error) {

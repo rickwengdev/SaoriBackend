@@ -40,9 +40,9 @@ class AuthController {
 
       res.cookie('auth_token', token, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
+        secure: true,
         maxAge: 7 * 24 * 60 * 60 * 1000,
-        sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
+        sameSite: 'None',
       });
 
       Logger.info('User authentication successful, redirecting to dashboard');

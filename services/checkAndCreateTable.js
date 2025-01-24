@@ -67,6 +67,18 @@ class DatabaseService {
           );
         `,
       },
+      {
+        name: 'TrackingMembers',
+        schema: `
+          CREATE TABLE TrackingMembers (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            server_id VARCHAR(255) NOT NULL UNIQUE,
+            trackingmembers_channel_id VARCHAR(255),
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (server_id) REFERENCES Servers(server_id) ON DELETE CASCADE
+          );
+        `,
+      }
     ];
   }
 
