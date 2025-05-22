@@ -48,15 +48,26 @@ Logger.info('Application is starting...');
 Logger.error('This is an error message');
 
 // 測試 MariaDB 連接
-(async () => {
-  try {
-    const conn = await db.getConnection();
-    Logger.info('MariaDB connection successful');
-    conn.release();
-  } catch (err) {
-    Logger.error(`Failed to connect to MariaDB: ${err.message}`);
-    process.exit(1); // 終止應用程式
+async function waitForMariaDB(retries = 10, interval = 3000) {
+  while (retries > 0) {
+    try {
+      const conn = await db.getConnection();
+      Logger.info('MariaDB connection successful');
+      conn.release();
+      return;
+    } catch (err) {
+      Logger.warn(`Waiting for MariaDB... Retries left: ${retries - 1}`);
+      retries--;
+      await new Promise(res => setTimeout(res, interval));
+    }
   }
+  Logger.error('Failed to connect to MariaDB after multiple attempts');
+  process.exit(1);
+}
+
+// Wait for MariaDB connection
+(async () => {
+  await waitForMariaDB();
 })();
 
 // Initialize database tables
