@@ -31,7 +31,7 @@ services:
     image: frontend
     container_name: frontend_container
     ports:
-      - "8080:8080"
+      - "443:443"
     depends_on:
       - backend
     networks:
