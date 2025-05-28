@@ -3,7 +3,7 @@ const Logger = require('../services/errorhandleService');
 
 class AuthController {
   constructor() {
-    this.dashboardUrl = `${process.env.API_URL}:8080/dashboard`;
+    this.dashboardUrl = `${process.env.API_URL}:443/dashboard`;
   }
 
   /**

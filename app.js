@@ -30,7 +30,7 @@ const sslOptions = {
 };
 
 // Middleware
-app.use(cors({ origin: `${process.env.API_URL}:8080`, credentials: true }));
+app.use(cors({ origin: `${process.env.API_URL}`, credentials: true }));
 app.use(express.json());
 app.use(cookieParser());
 
