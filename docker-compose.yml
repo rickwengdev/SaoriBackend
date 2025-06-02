@@ -23,6 +23,8 @@ services:
       - "3000:3000"
     depends_on:
       - mariadb
+    volumes:
+      - shared_data:/data
     networks:
       - app_network
 
@@ -43,6 +45,8 @@ services:
     container_name: bot_container
     depends_on:
       - mariadb
+    volumes:
+      - shared_data:/data
     networks:
       - app_network
 
@@ -52,3 +56,4 @@ networks:
 
 volumes:
   mariadb_data:
+  shared_data:
