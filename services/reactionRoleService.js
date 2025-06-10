@@ -32,10 +32,19 @@ class ReactionRoleService {
       });
       return response.data;
     } catch (error) {
-      const errorMsg = error.response?.data || error.message;
       const status = error.response?.status || 'NO_STATUS';
-      Logger.error(`[sendDiscordApiRequest] ${method} ${endpoint} failed [${status}]:`, errorMsg);
-      throw new Error(`Discord API error: ${status}`);
+      const url = `${this.DISCORD_API_BASE}${endpoint}`;
+      const errorData = error.response?.data || {};
+      const errorCode = errorData.code || 'UNKNOWN';
+      const errorMessage = errorData.message || error.message;
+
+      Logger.error(`[Discord API] Request Failed`);
+      Logger.error(`→ URL: ${url}`);
+      Logger.error(`→ Status: ${status}`);
+      Logger.error(`→ Code: ${errorCode}`);
+      Logger.error(`→ Message: ${errorMessage}`);
+
+      throw new Error(`Discord API error ${status} (${errorCode}): ${errorMessage}`);
     }
   }
 
