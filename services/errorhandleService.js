@@ -108,6 +108,7 @@ Stack Trace: ${error.stack}
    */
   error(message) {
     this.logger.error(message);
+    console.error(message); // 同時輸出到終端
   }
 }
 
